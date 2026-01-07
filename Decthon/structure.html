@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Cineverse - Stream Movies & Series | Pick Your Poison</title>
+    <meta name="description"
+        content="Discover and stream your favorite movies and series on Cineverse. AI-powered recommendations, trending content, and personalized picks just for you." />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#D4A7A7",
+                        "primary-hover": "#C28B8B",
+                        "background-light": "#F9F8F4",
+                        "background-dark": "#0A0A0A",
+                        "surface-light": "#FFFFFF",
+                        "surface-dark": "#161616",
+                        "text-light": "#2D2D2D",
+                        "text-dark": "#E5E5E5",
+                        "accent-light": "#E0D0B8",
+                        "accent-dark": "#2A2A2A",
+                        "nobel-gold": "#C5A059",
+                        "stone": {
+                            50: "#fafaf9",
+                            100: "#f5f5f4",
+                            200: "#e7e5e4",
+                            300: "#d6d3d1",
+                            400: "#a8a29e",
+                            500: "#78716c",
+                            600: "#57534e",
+                            700: "#44403c",
+                            800: "#292524",
+                            900: "#1c1917",
+                        }
+                    },
+                    fontFamily: {
+                        display: ["Playfair Display", "serif"],
+                        body: ["Inter", "sans-serif"],
+                        serif: ["Playfair Display", "serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.75rem",
+                        xl: "1rem",
+                        "2xl": "1.5rem",
+                    },
+                    boxShadow: {
+                        'glow': '0 0 20px rgba(212, 167, 167, 0.15)',
+                        'glow-lg': '0 0 30px rgba(212, 167, 167, 0.25)',
+                        'card': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                        'elegant': '0 10px 40px -10px rgba(0, 0, 0, 0.1)',
+                    },
+                    animation: {
+                        'pulse-subtle': 'pulse-subtle 2s ease-in-out infinite',
+                        'glow-pulse': 'glow-pulse 2s ease-in-out infinite',
+                        'fade-in-up': 'fade-in-up 0.6s ease-out forwards',
+                        'shimmer': 'shimmer 2s infinite linear',
+                    },
+                    keyframes: {
+                        'pulse-subtle': {
+                            '0%, 100%': { opacity: '1' },
+                            '50%': { opacity: '0.8' },
+                        },
+                        'glow-pulse': {
+                            '0%, 100%': { boxShadow: '0 0 20px rgba(212, 167, 167, 0.15)' },
+                            '50%': { boxShadow: '0 0 30px rgba(212, 167, 167, 0.35)' },
+                        },
+                        'fade-in-up': {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        'shimmer': {
+                            '0%': { backgroundPosition: '-200% 0' },
+                            '100%': { backgroundPosition: '200% 0' },
+                        },
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        body {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Focus visible styles for accessibility */
+        .focus-ring:focus-visible {
+            outline: 2px solid #D4A7A7;
+            outline-offset: 2px;
+        }
+
+        /* Search input glow animation */
+        .search-glow {
+            animation: search-glow 3s ease-in-out infinite;
+        }
+
+        @keyframes search-glow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(212, 167, 167, 0);
+            }
+
+            50% {
+                box-shadow: 0 0 20px 2px rgba(212, 167, 167, 0.3);
+            }
+        }
+
+        /* Skeleton loading animation */
+        .skeleton {
+            background: linear-gradient(90deg, #e7e5e4 25%, #f5f5f4 50%, #e7e5e4 75%);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite linear;
+        }
+
+        .dark .skeleton {
+            background: linear-gradient(90deg, #292524 25%, #44403c 50%, #292524 75%);
+            background-size: 200% 100%;
+        }
+
+        /* Movie card hover effects */
+        .movie-card {
+            transition: all 0.3s ease;
+        }
+
+        .movie-card:hover {
+            transform: translateY(-4px);
+        }
+
+        /* Response container transition */
+        .response-section {
+            transition: all 0.5s ease-out;
+        }
+
+        /* Typing cursor */
+        .typing-cursor::after {
+            content: '|';
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            50% {
+                opacity: 1;
+            }
+
+            51%,
+            100% {
+                opacity: 0;
+            }
+        }
+
+        /* Drop cap styling */
+        .drop-cap::first-letter {
+            float: left;
+            font-size: 3.5rem;
+            line-height: 1;
+            margin-right: 0.75rem;
+            margin-top: 0.25rem;
+            font-family: 'Playfair Display', serif;
+            color: #C5A059;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark font-body min-h-screen flex flex-col transition-colors duration-300">
+
+    <!-- Header/Navigation -->
+    <header>
+        <nav class="fixed top-0 w-full z-50 px-6 py-4 flex justify-between items-center backdrop-blur-md bg-background-light/80 dark:bg-background-dark/80 border-b border-gray-200 dark:border-gray-800"
+            role="navigation" aria-label="Main navigation">
+            <button class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors group focus-ring"
+                aria-label="View history">
+                <span
+                    class="material-icons text-gray-600 dark:text-gray-400 group-hover:text-primary transition-colors">history</span>
+            </button>
+            <div
+                class="text-2xl font-display font-bold tracking-wider text-gray-900 dark:text-white flex items-center gap-2">
+                <span class="text-primary material-icons">movie_filter</span>
+                <span>CINE<span class="text-primary">VERSE</span></span>
+            </div>
+            <button class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors group focus-ring"
+                id="theme-toggle" aria-label="Toggle dark mode">
+                <span
+                    class="material-icons text-gray-600 dark:text-gray-400 group-hover:text-primary transition-colors hidden dark:block">light_mode</span>
+                <span
+                    class="material-icons text-gray-600 dark:text-gray-400 group-hover:text-primary transition-colors block dark:hidden">dark_mode</span>
+            </button>
+        </nav>
+    </header>
+
+    <main class="flex-grow pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full" role="main">
+
+        <!-- Hero Section -->
+        <section id="hero-section" class="w-full max-w-3xl mx-auto text-center space-y-8 mt-8 mb-12">
+            <h1
+                class="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-gray-900 dark:text-white leading-tight">
+                Pick your <span class="text-primary italic">Poison...</span>
+            </h1>
+
+            <!-- Enhanced Search Bar -->
+            <div class="relative group">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <span class="material-icons text-gray-400 dark:text-gray-500" id="search-icon">search</span>
+                </div>
+                <input id="search-input"
+                    class="block w-full pl-12 pr-24 py-4 rounded-full bg-white dark:bg-surface-dark border-2 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-primary focus:ring-2 focus:ring-primary/30 dark:focus:border-primary dark:focus:ring-primary/30 shadow-lg dark:shadow-none transition-all duration-300 focus:scale-[1.01] search-glow focus-ring"
+                    placeholder="Ask me for movie recommendations..." type="text"
+                    aria-label="Ask CineBot for movie recommendations" />
+                <div class="absolute inset-y-0 right-2 flex items-center gap-2">
+                    <button id="send-btn"
+                        class="bg-primary hover:bg-primary-hover text-white rounded-full p-2 transition-all duration-200 focus-ring hidden"
+                        aria-label="Send message">
+                        <span class="material-icons text-sm">send</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Category Tags -->
+            <div class="flex flex-wrap justify-center gap-3" role="group" aria-label="Content categories">
+                <button
+                    class="category-btn px-4 py-2 rounded-full bg-surface-light dark:bg-surface-dark border border-gray-200 dark:border-gray-800 hover:border-nobel-gold hover:bg-nobel-gold/10 dark:hover:border-nobel-gold dark:hover:bg-nobel-gold/10 text-sm font-medium transition-all flex items-center gap-2 group focus-ring"
+                    data-query="What are the trending movies right now?" aria-pressed="false">
+                    <span
+                        class="material-icons text-xs group-hover:text-nobel-gold transition-colors">trending_up</span>
+                    Trending
+                </button>
+                <button
+                    class="category-btn px-4 py-2 rounded-full bg-surface-light dark:bg-surface-dark border border-gray-200 dark:border-gray-800 hover:border-nobel-gold hover:bg-nobel-gold/10 dark:hover:border-nobel-gold dark:hover:bg-nobel-gold/10 text-sm font-medium transition-all flex items-center gap-2 group focus-ring"
+                    data-query="What are the best new movie releases?" aria-pressed="false">
+                    <span
+                        class="material-icons text-xs group-hover:text-nobel-gold transition-colors">new_releases</span>
+                    New Releases
+                </button>
+                <button
+                    class="category-btn px-4 py-2 rounded-full bg-surface-light dark:bg-surface-dark border border-gray-200 dark:border-gray-800 hover:border-nobel-gold hover:bg-nobel-gold/10 dark:hover:border-nobel-gold dark:hover:bg-nobel-gold/10 text-sm font-medium transition-all flex items-center gap-2 group focus-ring"
+                    data-query="Recommend me a movie based on my mood - something uplifting and fun"
+                    aria-pressed="false">
+                    <span class="material-icons text-xs group-hover:text-nobel-gold transition-colors">psychology</span>
+                    For You
+                </button>
+            </div>
+        </section>
+
+        <!-- AI Response Section - Research Visualization Style -->
+        <section id="response-section" class="hidden response-section w-full animate-fade-in-up">
+
+            <!-- Query Header -->
+            <div class="max-w-4xl mx-auto mb-8">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-full bg-nobel-gold flex items-center justify-center shadow-md">
+                        <span class="material-icons text-white">smart_toy</span>
+                    </div>
+                    <div>
+                        <span
+                            class="text-xs font-bold tracking-widest text-stone-500 dark:text-stone-400 uppercase">CineBot
+                            Response</span>
+                        <h2 id="query-display" class="font-serif text-xl md:text-2xl text-stone-900 dark:text-white">
+                        </h2>
+                    </div>
+                    <button id="close-response"
+                        class="ml-auto p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors text-stone-400 hover:text-stone-600 dark:hover:text-stone-300">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+                <div class="w-16 h-1 bg-nobel-gold"></div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading-state" class="max-w-4xl mx-auto hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Skeleton Cards -->
+                    <div
+                        class="bg-white dark:bg-surface-dark rounded-xl p-6 border border-stone-200 dark:border-stone-800">
+                        <div class="skeleton h-6 w-3/4 rounded mb-3"></div>
+                        <div class="skeleton h-4 w-1/2 rounded mb-4"></div>
+                        <div class="skeleton h-20 w-full rounded mb-4"></div>
+                        <div class="skeleton h-4 w-full rounded"></div>
+                    </div>
+                    <div
+                        class="bg-white dark:bg-surface-dark rounded-xl p-6 border border-stone-200 dark:border-stone-800">
+                        <div class="skeleton h-6 w-3/4 rounded mb-3"></div>
+                        <div class="skeleton h-4 w-1/2 rounded mb-4"></div>
+                        <div class="skeleton h-20 w-full rounded mb-4"></div>
+                        <div class="skeleton h-4 w-full rounded"></div>
+                    </div>
+                    <div
+                        class="bg-white dark:bg-surface-dark rounded-xl p-6 border border-stone-200 dark:border-stone-800 hidden md:block">
+                        <div class="skeleton h-6 w-3/4 rounded mb-3"></div>
+                        <div class="skeleton h-4 w-1/2 rounded mb-4"></div>
+                        <div class="skeleton h-20 w-full rounded mb-4"></div>
+                        <div class="skeleton h-4 w-full rounded"></div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-center gap-3 mt-8 text-stone-500 dark:text-stone-400">
+                    <div class="flex gap-1">
+                        <span class="w-2 h-2 bg-nobel-gold rounded-full animate-bounce"
+                            style="animation-delay: 0ms"></span>
+                        <span class="w-2 h-2 bg-nobel-gold rounded-full animate-bounce"
+                            style="animation-delay: 150ms"></span>
+                        <span class="w-2 h-2 bg-nobel-gold rounded-full animate-bounce"
+                            style="animation-delay: 300ms"></span>
+                    </div>
+                    <span class="text-sm font-medium">CineBot is thinking...</span>
+                </div>
+            </div>
+
+            <!-- Response Content Container -->
+            <div id="response-content" class="max-w-4xl mx-auto">
+
+                <!-- Introduction Text (streamed) -->
+                <div id="intro-text"
+                    class="bg-white dark:bg-surface-dark rounded-xl p-8 border border-stone-200 dark:border-stone-700 shadow-elegant mb-8">
+                    <div id="ai-response"
+                        class="text-lg text-stone-700 dark:text-stone-300 leading-relaxed prose prose-stone dark:prose-invert max-w-none font-body">
+                        <!-- Streaming response rendered here -->
+                    </div>
+                </div>
+
+                <!-- Movie Cards Grid (populated dynamically) -->
+                <div id="movie-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Movie cards will be inserted here -->
+                </div>
+
+                <!-- Action Buttons -->
+                <div id="action-buttons"
+                    class="hidden flex flex-wrap justify-center gap-4 mt-8 pt-8 border-t border-stone-200 dark:border-stone-800">
+                    <button
+                        onclick="window.scrollTo({top: 0, behavior: 'smooth'}); document.getElementById('search-input').focus();"
+                        class="px-6 py-3 bg-nobel-gold text-white rounded-full font-medium hover:bg-nobel-gold/90 transition-all shadow-md flex items-center gap-2">
+                        <span class="material-icons text-sm">refresh</span>
+                        Ask Another Question
+                    </button>
+                    <button onclick="navigator.clipboard.writeText(document.getElementById('ai-response').innerText)"
+                        class="px-6 py-3 bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 rounded-full font-medium hover:bg-stone-200 dark:hover:bg-stone-700 transition-all border border-stone-200 dark:border-stone-700 flex items-center gap-2">
+                        <span class="material-icons text-sm">content_copy</span>
+                        Copy Response
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer
+        class="w-full bg-surface-light dark:bg-surface-dark border-t border-gray-200 dark:border-gray-800 py-8 transition-colors"
+        role="contentinfo">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="text-center md:text-left">
+                    <p class="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">Visual Design</p>
+                    <h4 class="text-lg font-display font-bold text-gray-900 dark:text-white">Sudeep</h4>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center mb-2 shadow-glow">
+                        <span class="material-icons text-white">fingerprint</span>
+                    </div>
+                    <p class="text-sm font-medium text-gray-900 dark:text-white">Creator</p>
+                    <h3 class="text-xl font-display italic text-gray-800 dark:text-gray-200">Sagar</h3>
+                </div>
+                <div class="text-center md:text-right">
+                    <p class="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">Development</p>
+                    <h4 class="text-lg font-display font-bold text-gray-900 dark:text-white">Aditya</h4>
+                </div>
+            </div>
+            <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-800 text-center">
+                <p class="text-sm text-gray-500 dark:text-gray-400">© 2026 Cineverse. AI-powered movie recommendations.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Theme Toggle
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const htmlElement = document.documentElement;
+
+        // Ensure dark mode is active by default
+        if (!htmlElement.classList.contains('dark')) {
+            htmlElement.classList.add('dark');
+            localStorage.theme = 'dark';
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            if (htmlElement.classList.contains('dark')) {
+                htmlElement.classList.remove('dark');
+                localStorage.theme = 'light';
+            } else {
+                htmlElement.classList.add('dark');
+                localStorage.theme = 'dark';
+            }
+        });
+
+        // ========================================
+        // AI Chat Functionality
+        // ========================================
+        const API_BASE = 'http://localhost:8000';
+        const searchInput = document.getElementById('search-input');
+        const sendBtn = document.getElementById('send-btn');
+        const heroSection = document.getElementById('hero-section');
+        const responseSection = document.getElementById('response-section');
+        const loadingState = document.getElementById('loading-state');
+        const responseContent = document.getElementById('response-content');
+        const aiResponse = document.getElementById('ai-response');
+        const queryDisplay = document.getElementById('query-display');
+        const closeResponse = document.getElementById('close-response');
+        const categoryBtns = document.querySelectorAll('.category-btn');
+        const actionButtons = document.getElementById('action-buttons');
+        const movieCards = document.getElementById('movie-cards');
+
+        // Show/hide send button based on input
+        searchInput.addEventListener('input', () => {
+            if (searchInput.value.trim()) {
+                sendBtn.classList.remove('hidden');
+            } else {
+                sendBtn.classList.add('hidden');
+            }
+        });
+
+        // Send message function
+        async function sendMessage(message, isRecommendation = true) {
+            if (!message.trim()) return;
+
+            // Update UI - show response section
+            queryDisplay.textContent = message;
+            heroSection.classList.add('mb-4');
+            responseSection.classList.remove('hidden');
+            loadingState.classList.remove('hidden');
+            responseContent.classList.add('hidden');
+            actionButtons.classList.add('hidden');
+            aiResponse.innerHTML = '';
+            movieCards.innerHTML = '';
+
+            // Scroll to response
+            responseSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            try {
+                const response = await fetch(`${API_BASE}/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        stream: true,
+                        is_recommendation: isRecommendation
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+
+                // Handle streaming response
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                // Hide loading, show content
+                loadingState.classList.add('hidden');
+                responseContent.classList.remove('hidden');
+
+                let fullText = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.slice(6));
+                                if (data.text) {
+                                    fullText += data.text;
+                                    // Format and render response
+                                    aiResponse.innerHTML = formatResponse(fullText);
+                                }
+                            } catch (e) {
+                                // Skip invalid JSON
+                            }
+                        }
+                    }
+                }
+
+                // Show action buttons after streaming completes
+                actionButtons.classList.remove('hidden');
+                actionButtons.classList.add('flex');
+
+            } catch (error) {
+                loadingState.classList.add('hidden');
+                responseContent.classList.remove('hidden');
+                aiResponse.innerHTML = `
+                    <div class="flex items-start gap-4 p-6 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800">
+                        <span class="material-icons text-red-500">error</span>
+                        <div>
+                            <h3 class="font-semibold text-red-800 dark:text-red-300 mb-2">Connection Error</h3>
+                            <p class="text-red-600 dark:text-red-400 mb-3">Unable to connect to CineBot. Make sure the backend is running.</p>
+                            <code class="block bg-red-100 dark:bg-red-900/40 px-4 py-2 rounded text-sm text-red-700 dark:text-red-300">
+                                cd backend && python3 main.py
+                            </code>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Format response with enhanced markdown support
+        function formatResponse(text) {
+            return text
+                // Headers
+                .replace(/^### (.*$)/gm, '<h4 class="font-serif text-lg font-semibold text-stone-900 dark:text-white mt-6 mb-2">$1</h4>')
+                .replace(/^## (.*$)/gm, '<h3 class="font-serif text-xl font-semibold text-stone-900 dark:text-white mt-6 mb-3">$1</h3>')
+                // Bold (movie titles)
+                .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-stone-900 dark:text-white">$1</strong>')
+                // Italic
+                .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
+                // Ratings with stars
+                .replace(/(\d+\.?\d?)\/10/g, '<span class="inline-flex items-center gap-1 text-nobel-gold font-medium"><span class="material-icons text-sm">star</span>$1/10</span>')
+                // Line breaks
+                .replace(/\n\n/g, '</p><p class="mb-4">')
+                .replace(/\n/g, '<br>')
+                // Wrap in paragraph
+                .replace(/^(.*)$/, '<p class="mb-4">$1</p>')
+                // Simple list items
+                .replace(/^- /gm, '<span class="text-nobel-gold mr-2">•</span>');
+        }
+
+        // Handle Enter key
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendMessage(searchInput.value);
+            }
+        });
+
+        // Handle send button click
+        sendBtn.addEventListener('click', () => {
+            sendMessage(searchInput.value);
+        });
+
+        // Handle close response button
+        closeResponse.addEventListener('click', () => {
+            responseSection.classList.add('hidden');
+            aiResponse.innerHTML = '';
+            movieCards.innerHTML = '';
+            actionButtons.classList.add('hidden');
+            heroSection.classList.remove('mb-4');
+            searchInput.value = '';
+            sendBtn.classList.add('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // Handle category button clicks
+        categoryBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const query = btn.dataset.query;
+                searchInput.value = query;
+                sendBtn.classList.remove('hidden');
+                sendMessage(query);
+            });
+        });
+    </script>
+
+</body>
+
+</html>
