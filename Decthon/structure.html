@@ -184,6 +184,14 @@
             font-family: 'Playfair Display', serif;
             color: #C5A059;
         }
+
+        /* Line clamp for truncating text */
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
     </style>
 </head>
 
@@ -342,9 +350,23 @@
                     </div>
                 </div>
 
-                <!-- Movie Cards Grid (populated dynamically) -->
-                <div id="movie-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Movie cards will be inserted here -->
+
+                <!-- Movie Cards Slider (populated dynamically) -->
+                <div id="movie-cards-wrapper" class="relative hidden">
+                    <!-- Left Arrow -->
+                    <button id="slider-left" class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-12 h-12 bg-white dark:bg-surface-dark rounded-full shadow-xl border border-stone-200 dark:border-stone-700 flex items-center justify-center hover:bg-nobel-gold hover:text-white hover:border-nobel-gold transition-all group">
+                        <span class="material-icons text-stone-600 dark:text-stone-400 group-hover:text-white">chevron_left</span>
+                    </button>
+                    
+                    <!-- Scrollable Cards Container -->
+                    <div id="movie-cards" class="flex gap-6 overflow-x-auto scroll-smooth hide-scrollbar py-4 px-2">
+                        <!-- Movie cards will be inserted here -->
+                    </div>
+                    
+                    <!-- Right Arrow -->
+                    <button id="slider-right" class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-12 h-12 bg-white dark:bg-surface-dark rounded-full shadow-xl border border-stone-200 dark:border-stone-700 flex items-center justify-center hover:bg-nobel-gold hover:text-white hover:border-nobel-gold transition-all group">
+                        <span class="material-icons text-stone-600 dark:text-stone-400 group-hover:text-white">chevron_right</span>
+                    </button>
                 </div>
 
                 <!-- Action Buttons -->
@@ -432,6 +454,9 @@
         const categoryBtns = document.querySelectorAll('.category-btn');
         const actionButtons = document.getElementById('action-buttons');
         const movieCards = document.getElementById('movie-cards');
+        const movieCardsWrapper = document.getElementById('movie-cards-wrapper');
+        const sliderLeft = document.getElementById('slider-left');
+        const sliderRight = document.getElementById('slider-right');
 
         // Show/hide send button based on input
         searchInput.addEventListener('input', () => {
@@ -512,6 +537,9 @@
                 // Show action buttons after streaming completes
                 actionButtons.classList.remove('hidden');
                 actionButtons.classList.add('flex');
+                
+                // Fetch and display movie cards with posters
+                await fetchAndDisplayMovieCards(fullText);
 
             } catch (error) {
                 loadingState.classList.add('hidden');
@@ -570,6 +598,7 @@
             responseSection.classList.add('hidden');
             aiResponse.innerHTML = '';
             movieCards.innerHTML = '';
+            movieCardsWrapper.classList.add('hidden');
             actionButtons.classList.add('hidden');
             heroSection.classList.remove('mb-4');
             searchInput.value = '';
@@ -585,6 +614,138 @@
                 sendBtn.classList.remove('hidden');
                 sendMessage(query);
             });
+        });
+
+        // Extract movie titles from AI response text
+        function extractMovieTitles(text) {
+            const titles = [];
+            
+            // Match bold titles (markdown format): **Movie Title** or **Movie Title** (Year)
+            const boldPattern = /\*\*([^*]+)\*\*\s*\((\d{4})/g;
+            let match;
+            while ((match = boldPattern.exec(text)) !== null) {
+                titles.push({
+                    title: match[1].trim(),
+                    year: parseInt(match[2])
+                });
+            }
+            
+            // Also try to match numbered list items: 1. **Title** or 1. Title (Year)
+            if (titles.length === 0) {
+                const numberedPattern = /\d+\.\s*\*?\*?([^*\n(]+)\*?\*?\s*\((\d{4})/g;
+                while ((match = numberedPattern.exec(text)) !== null) {
+                    titles.push({
+                        title: match[1].trim(),
+                        year: parseInt(match[2])
+                    });
+                }
+            }
+            
+            return titles;
+        }
+
+        // Fetch movie data from backend (TMDB)
+        async function fetchMovieCard(title, year) {
+            try {
+                const response = await fetch(`${API_BASE}/search-movie`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, year })
+                });
+                const data = await response.json();
+                if (data.found) {
+                    return data.movie;
+                }
+                return null;
+            } catch (error) {
+                console.error('Error fetching movie:', error);
+                return null;
+            }
+        }
+
+        // Render movie cards
+        function renderMovieCard(movie) {
+            const posterHtml = movie.poster_url 
+                ? `<img src="${movie.poster_url}" alt="${movie.title}" class="w-full h-64 object-cover rounded-t-xl">`
+                : `<div class="w-full h-64 bg-gradient-to-br from-stone-700 to-stone-900 rounded-t-xl flex items-center justify-center">
+                     <span class="material-icons text-6xl text-stone-500">movie</span>
+                   </div>`;
+            
+            const genresHtml = movie.genres.map(g => 
+                `<span class="px-2 py-1 bg-stone-100 dark:bg-stone-800 rounded-full text-xs font-medium text-stone-600 dark:text-stone-400">${g}</span>`
+            ).join('');
+            
+            return `
+                <div class="movie-card w-72 flex-shrink-0 bg-white dark:bg-surface-dark rounded-xl border border-stone-200 dark:border-stone-700 shadow-card overflow-hidden hover:shadow-xl hover:border-nobel-gold/50 transition-all duration-300 cursor-pointer group">
+                    <div class="relative overflow-hidden">
+                        ${posterHtml}
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                            <span class="text-white text-sm font-medium flex items-center gap-1">
+                                <span class="material-icons text-sm">info</span>
+                                View Details
+                            </span>
+                        </div>
+                        <div class="absolute top-3 right-3 bg-black/70 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1">
+                            <span class="material-icons text-nobel-gold text-sm">star</span>
+                            <span class="text-white text-sm font-medium">${movie.rating}</span>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-serif font-semibold text-lg text-stone-900 dark:text-white mb-1 truncate">${movie.title}</h3>
+                        <p class="text-stone-500 dark:text-stone-400 text-sm mb-3">${movie.year}</p>
+                        <div class="flex flex-wrap gap-1 mb-3">
+                            ${genresHtml}
+                        </div>
+                        <p class="text-stone-600 dark:text-stone-400 text-sm line-clamp-2">${movie.overview}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Fetch and display movie cards after streaming completes
+        async function fetchAndDisplayMovieCards(fullText) {
+            const titles = extractMovieTitles(fullText);
+            if (titles.length === 0) {
+                movieCardsWrapper.classList.add('hidden');
+                return;
+            }
+            
+            // Show wrapper and loading indicator
+            movieCardsWrapper.classList.remove('hidden');
+            movieCards.innerHTML = `
+                <div class="flex items-center justify-center py-8 w-full">
+                    <div class="flex items-center gap-3 text-stone-500">
+                        <div class="flex gap-1">
+                            <span class="w-2 h-2 bg-nobel-gold rounded-full animate-bounce" style="animation-delay: 0ms"></span>
+                            <span class="w-2 h-2 bg-nobel-gold rounded-full animate-bounce" style="animation-delay: 150ms"></span>
+                            <span class="w-2 h-2 bg-nobel-gold rounded-full animate-bounce" style="animation-delay: 300ms"></span>
+                        </div>
+                        <span class="text-sm">Loading movie posters...</span>
+                    </div>
+                </div>
+            `;
+            
+            // Fetch ALL movies in parallel (no limit)
+            const moviePromises = titles.map(t => fetchMovieCard(t.title, t.year));
+            const movies = await Promise.all(moviePromises);
+            
+            // Filter out null results and render cards
+            const validMovies = movies.filter(m => m !== null);
+            if (validMovies.length > 0) {
+                movieCards.innerHTML = validMovies.map(renderMovieCard).join('');
+            } else {
+                movieCardsWrapper.classList.add('hidden');
+                movieCards.innerHTML = '';
+            }
+        }
+
+        // Slider navigation
+        sliderLeft.addEventListener('click', () => {
+            movieCards.scrollBy({ left: -300, behavior: 'smooth' });
+        });
+
+        sliderRight.addEventListener('click', () => {
+            movieCards.scrollBy({ left: 300, behavior: 'smooth' });
         });
     </script>
 
