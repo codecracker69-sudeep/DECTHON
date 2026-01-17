@@ -50,12 +50,6 @@ Decthon/
 - **Backend**: Python, FastAPI, OpenAI API
 - **Fonts**: Playfair Display, Inter
 
-## Team
-
-- **Creator**: Sagar
-- **Visual Design**: Sudeep
-- **Development**: Aditya
-
 ---
 
 © 2026 Cineverse. AI-powered movie recommendations.
